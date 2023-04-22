@@ -14,13 +14,15 @@ Recording sound outside the studio usually involves several mics and a "digital 
 The `ffmpeg` command I used to downsample all 96kHz WAV in a directory to AIFF.
 
 ```bash
-for i in .WAV; do ffmpeg -i "$i" -c:a pcm_s24be -ar 48000 "${i%.}.aiff"; done
+for i in .WAV; do ffmpeg -i "$i" -c:a pcm_s24be -ar 48000 \
+  "${i%.}.aiff"; done
 ```
 
 This still produces stereo files. I added `-af "pan=mono|FC=FL"`param to do [mono output](https://superuser.com/questions/601972/ffmpeg-isolate-one-audio-channel) and map Front Left channel to Front Center.
 
 ```bash
-for i in .WAV; do ffmpeg -i "$i" -c:a pcm_s24be -ar 48000 -af "pan=mono|FC=FL" "${i%.}.aiff"; done
+for i in .WAV; do ffmpeg -i "$i" -c:a pcm_s24be -ar 48000 \
+  -af "pan=mono|FC=FL" "${i%.}.aiff"; done
 ```
 
 I also want to copy original metadata to AIFF.
@@ -41,11 +43,14 @@ Input #0, wav, from 'S1K8D1.WAV':
 [For that](https://superuser.com/questions/1493313/covert-flac-to-aiff-while-saving-tags-metadata) I had to specify `-write_id3v2 1` param.
 
 ```bash
-for i in .WAV; do ffmpeg -i "$i" -c:a pcm_s24be -ar 48000 -af "pan=mono|FC=FL" -write_id3v2 yes "${i%.}.aiff"; done
+for i in .WAV; do ffmpeg -i "$i" -c:a pcm_s24be -ar 48000 \
+  -af "pan=mono|FC=FL" -write_id3v2 yes "${i%.}.aiff"; done
 ```
 
-Some drawbacks.
+Some notes.
 
-1. I can not validate that there is no right channel before processing.
+1. I could not validate that there is no right channel before processing.
     
 2. Metadata was not updated after recoding. Ideally reencoder should add another line to `coding_history` ([`BEXT CodingHistory`](https://www.si.edu/sites/default/files/unit/OCIO/si_dams_metadata_guidelines_mm16_2020.pdf)).
+    
+3. Updated AIFF-C/sowt format allows little-endian encoding of samples, which should save some memory. Need to research how to create it.
